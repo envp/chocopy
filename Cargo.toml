@@ -7,4 +7,5 @@ edition = "2021"
 
 [dependencies]
 logos = "0.12.1"
-chumsky = "0.8.0"
+log = "0.4"
+pretty_env_logger = "0.4"

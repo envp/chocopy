@@ -2,7 +2,7 @@
 #![feature(trace_macros)]
 
 mod lexer {
-    use std::collections::VecDeque;
+    use std::{collections::VecDeque, iter::Peekable};
 
     use logos::{Lexer, Logos, Span, SpannedIter};
 
@@ -203,7 +203,7 @@ mod lexer {
     }
 
     pub struct Tokenizer<'input> {
-        raw_lexer: SpannedIter<'input, TokenKind<'input>>,
+        raw_lexer: Peekable<SpannedIter<'input, TokenKind<'input>>>,
         token_buffer: VecDeque<Result<Token<'input>, LexicalError>>,
         indent_stack: Vec<WSKind>,
     }
@@ -218,14 +218,13 @@ mod lexer {
     impl<'input> Tokenizer<'input> {
         pub fn new(source: &'input str) -> Self {
             Self {
-                raw_lexer: Lexer::new(source).spanned(),
+                raw_lexer: Lexer::new(source).spanned().peekable(),
                 indent_stack: Default::default(),
                 token_buffer: Default::default(),
             }
         }
 
-        /// Run through the tokens on a single physical line. i.e. up to the
-        /// first newline token
+        /// Capture the tokens on up to the first newline token.
         fn buffer_physical_line(&mut self) {
             let line = &mut self
                 .raw_lexer
@@ -271,7 +270,6 @@ mod lexer {
                     line.filter(|ts| !ts.0.is_indentation())
                         .map(|(t, s)| Ok(Token::from_raw(t, s))),
                 );
-            } else {
                 token_buffer.push_back(Ok(Token::EndLine));
             }
         }
@@ -322,6 +320,10 @@ mod lexer {
                 Err(err) => Err(err),
             }
         }
+
+        fn has_tokens_remaining(&mut self) -> bool {
+            self.raw_lexer.peek().is_some()
+        }
     }
 
     impl<'input> Iterator for Tokenizer<'input> {
@@ -329,10 +331,15 @@ mod lexer {
 
         fn next(&mut self) -> Option<Self::Item> {
             // Skip past whitespace-only lines while buffering tokens
-            while self.token_buffer.is_empty() {
+            while self.token_buffer.is_empty() && self.has_tokens_remaining() {
                 self.buffer_physical_line();
             }
-            self.token_buffer.pop_front()
+
+            // If the buffer is still empty, we've reached end of input.
+            // Generate necessary dedent tokens
+            self.token_buffer
+                .pop_front()
+                .or_else(|| self.indent_stack.pop().map(|_| Ok(Token::Dedent)))
         }
     }
 
@@ -377,7 +384,6 @@ mod lexer {
         }
 
         #[test]
-        #[ignore = "not implemented yet"]
         fn tokenizes_single_line() {
             let mut lexer = Tokenizer::new("varname: int = 12");
             check_lexer_has_tokens!(
@@ -410,9 +416,9 @@ mod lexer {
     }
 }
 
-use std::error::Error;
+use std::{error::Error, io::stdin};
 
-const SOURCE: &str = r##"
+const _SOURCE: &str = r##"
 def is_zero ( items : [ int ] , idx : int ) -> bool :
     val : int = 0 # Type is explicitly declared
     val = items [ idx ]
@@ -431,10 +437,13 @@ print( is_zero( mylist , 1) ) # Prints ’ True ’
 
 fn main() -> Result<(), Box<dyn Error>> {
     pretty_env_logger::init();
-    let lex = lexer::Tokenizer::new(SOURCE);
 
-    for token in lex {
-        println!("{token:?}");
+    for line in stdin().lines() {
+        let content = line?;
+        let lex = lexer::Tokenizer::new(&content);
+        for token in lex {
+            println!("{token:?}");
+        }
     }
     Ok(())
 }

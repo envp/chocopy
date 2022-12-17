@@ -281,7 +281,7 @@ mod lexer {
         fn compute_indent_tokens(
             indent_stack: &mut Vec<WSKind>,
             indentation: Option<Result<WSKind, LexicalError>>,
-        ) -> Result<Vec<Token>, LexicalError> {
+        ) -> Result<Vec<Token<'input>>, LexicalError> {
             if indentation.is_none() {
                 return Ok(Default::default());
             }

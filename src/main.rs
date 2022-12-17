@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 mod lexer;
+mod utils;
 
 use std::{error::Error, io::stdin};
 

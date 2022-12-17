@@ -5,6 +5,8 @@ use logos::{Lexer, Span, SpannedIter};
 
 pub use token_kinds::*;
 
+use crate::utils::iter::PeekingTakeWhileExt;
+
 type Offset = usize;
 type ByteSpan = (Offset, Offset);
 
@@ -85,9 +87,8 @@ impl<'input> Tokenizer<'input> {
                 let result = line
                     .next_if(|ts| ts.0.is_indentation())
                     .map_or_else(retrieve_indent_handler, mixed_indent_error_handler);
-                // FIXME: take_while(...) consumes an extra token.
-                // What is a better way
-                while line.next_if(|ts| ts.0.is_indentation()).is_some() {}
+                line.peeking_take_while(|ts| ts.0.is_indentation())
+                    .for_each(drop);
                 result
             });
         let token_buffer = &mut self.token_buffer;

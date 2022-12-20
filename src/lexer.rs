@@ -94,7 +94,6 @@ impl<'input> Tokenizer<'input> {
         let token_buffer = &mut self.token_buffer;
         let indent_stack = &mut self.indent_stack;
         if line.peek().is_some() {
-            dbg!(line.peek());
             // Process tokens inside the line
             let result = Tokenizer::compute_indent_tokens(indent_stack, indentation);
             match result {
@@ -210,6 +209,23 @@ mod tests {
     #[test]
     fn treats_whitespace_line_as_empty_input() {
         check_lexer_is_empty!(Tokenizer::new("  \t\t\t"));
+    }
+
+    #[test]
+    fn tokenizes_comment_only_input() {
+        let mut lexer = Tokenizer::new(
+            r##"#!/usr/bin/chocopy
+                # This is another comment"##,
+        );
+        check_lexer_has_tokens!(
+            lexer,
+            Token::from_raw(TokenKind::Comment("#!/usr/bin/chocopy"), 0..18),
+            Token::EndLine,
+            Token::Indent,
+            Token::from_raw(TokenKind::Comment("# This is another comment"), 35..60),
+            Token::EndLine,
+            Token::Dedent,
+        );
     }
 
     #[test]

@@ -257,4 +257,36 @@ mod tests {
         Token::EndLine,
         Token::Dedent,
     );
+
+    make_test_case!(
+        simple_function,
+        indoc!(
+            r##"
+        def add(x: int, y: int) -> int:
+            return x + y
+        "##
+        ),
+        Token::from_raw(TokenKind::KWDef, 0..3),
+        Token::from_raw(TokenKind::Ident("add"), 4..7),
+        Token::from_raw(TokenKind::LParen, 7..8),
+        Token::from_raw(TokenKind::Ident("x"), 8..9),
+        Token::from_raw(TokenKind::Colon, 9..10),
+        Token::from_raw(TokenKind::Ident("int"), 11..14),
+        Token::from_raw(TokenKind::Comma, 14..15),
+        Token::from_raw(TokenKind::Ident("y"), 16..17),
+        Token::from_raw(TokenKind::Colon, 17..18),
+        Token::from_raw(TokenKind::Ident("int"), 19..22),
+        Token::from_raw(TokenKind::RParen, 22..23),
+        Token::from_raw(TokenKind::RArrow, 24..26),
+        Token::from_raw(TokenKind::Ident("int"), 27..30),
+        Token::from_raw(TokenKind::Colon, 30..31),
+        Token::EndLine,
+        Token::Indent,
+        Token::from_raw(TokenKind::KWReturn, 36..42),
+        Token::from_raw(TokenKind::Ident("x"), 43..44),
+        Token::from_raw(TokenKind::Operator(BuiltinOperator::Plus), 45..46),
+        Token::from_raw(TokenKind::Ident("y"), 47..48),
+        Token::EndLine,
+        Token::Dedent,
+    );
 }

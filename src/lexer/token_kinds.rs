@@ -46,17 +46,13 @@ pub enum Constant {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum BuiltinBoolOp {
+pub enum BuiltinOperator {
     Equal,
     NotEqual,
     Lesser,
     Greater,
     LesserEq,
     GreaterEq,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum BuiltinArithmeticOp {
     Plus,
     Minus,
     Asterisk,
@@ -95,21 +91,19 @@ pub enum TokenKind<'input> {
     #[token("->")]
     RArrow,
 
-    #[token("==", |_| BuiltinBoolOp::Equal)]
-    #[token("!=", |_| BuiltinBoolOp::NotEqual)]
-    #[token("<", |_| BuiltinBoolOp::Lesser)]
-    #[token(">", |_| BuiltinBoolOp::Greater)]
-    #[token("<=", |_| BuiltinBoolOp::LesserEq)]
-    #[token(">=", |_| BuiltinBoolOp::GreaterEq)]
-    BoolOperator(BuiltinBoolOp),
-
-    #[token("+", |_| BuiltinArithmeticOp::Plus)]
-    #[token("-", |_| BuiltinArithmeticOp::Minus)]
-    #[token("*", |_| BuiltinArithmeticOp::Asterisk)]
-    #[token("/", |_| BuiltinArithmeticOp::Slash)]
-    #[token("//", |_| BuiltinArithmeticOp::SlashSlash)]
-    #[token("%", |_| BuiltinArithmeticOp::Modulus)]
-    ArithmeticOperator(BuiltinArithmeticOp),
+    #[token("==", |_| BuiltinOperator::Equal)]
+    #[token("!=", |_| BuiltinOperator::NotEqual)]
+    #[token("<", |_| BuiltinOperator::Lesser)]
+    #[token(">", |_| BuiltinOperator::Greater)]
+    #[token("<=", |_| BuiltinOperator::LesserEq)]
+    #[token(">=", |_| BuiltinOperator::GreaterEq)]
+    #[token("+", |_| BuiltinOperator::Plus)]
+    #[token("-", |_| BuiltinOperator::Minus)]
+    #[token("*", |_| BuiltinOperator::Asterisk)]
+    #[token("/", |_| BuiltinOperator::Slash)]
+    #[token("//", |_| BuiltinOperator::SlashSlash)]
+    #[token("%", |_| BuiltinOperator::Modulus)]
+    Operator(BuiltinOperator),
 
     #[token("def", priority = 2)]
     KWDef,
@@ -121,7 +115,7 @@ pub enum TokenKind<'input> {
     #[regex("(?&digit)+", lex_integer)]
     BuiltinValue(Constant),
 
-    #[regex("(?&idstart)(?&idpart)+", priority = 1, callback = |lex| lex.slice())]
+    #[regex("(?&idstart)(?&idpart)*", priority = 1, callback = |lex| lex.slice())]
     Ident(&'input str),
 
     #[regex(r"\t+", |lex| {

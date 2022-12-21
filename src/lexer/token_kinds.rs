@@ -1,6 +1,6 @@
 use logos::{Lexer, Logos};
 
-#[derive(Debug, PartialEq, Eq, PartialOrd, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum WSKind {
     Tab(usize),
     Space(usize),
@@ -22,6 +22,21 @@ impl WSKind {
     }
 }
 
+impl PartialOrd for WSKind {
+    /// Compare two whitespace objects.
+    /// The comparison requires that they be the same 'kind' of whitespace.
+    /// Returns the `Some` variant if successful, ordered by argument
+    /// widths / character counts,
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        match (self, other) {
+            (Self::Tab(s), Self::Tab(o)) => Some(s.cmp(o)),
+            (Self::Space(s), Self::Space(o)) => Some(s.cmp(o)),
+            (Self::Newline(s), Self::Newline(o)) => Some(s.cmp(o)),
+            _ => None,
+        }
+    }
+}
+
 impl Ord for WSKind {
     /// Compare two whitespace objects.
     /// The comparison requires that they be the same 'kind' of whitespace.
@@ -30,12 +45,8 @@ impl Ord for WSKind {
     /// # Panics
     /// If the two whitespace are of a different kind, this will panic.
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        match (self, other) {
-            (Self::Tab(s), Self::Tab(o)) => s.cmp(o),
-            (Self::Space(s), Self::Space(o)) => s.cmp(o),
-            (Self::Newline(s), Self::Newline(o)) => s.cmp(o),
-            _ => unreachable!("Cannot compare different whitespace kinds."),
-        }
+        self.partial_cmp(other)
+            .expect("Cannot compare different whitespace kinds.")
     }
 }
 

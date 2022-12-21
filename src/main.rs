@@ -23,8 +23,6 @@ print( is_zero( mylist , 1) ) # Prints ’ True ’
 "##;
 
 fn main() -> Result<(), Box<dyn Error>> {
-    pretty_env_logger::init();
-
     for line in stdin().lines() {
         let content = line?;
         let lex = lexer::Tokenizer::new(&content);

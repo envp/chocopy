@@ -196,72 +196,63 @@ mod tests {
         };
     }
 
-    #[test]
-    fn tokenizes_empty_line() {
-        check_lexer_is_empty!(Tokenizer::new(""));
+    macro_rules! make_test_case {
+        ($name: ident, $input: literal, []) => {
+            #[test]
+            fn $name() {
+                check_lexer_is_empty!(Tokenizer::new($input));
+            }
+        };
+        ($name: ident, $input: literal, $( $expected_tokens: expr ),+ $(,)?) => {
+            #[test]
+            fn $name() {
+                let mut lexer = Tokenizer::new($input);
+                check_lexer_has_tokens!(lexer, $($expected_tokens),+);
+            }
+        };
     }
 
-    #[test]
-    fn tokenizes_empty_input() {
-        check_lexer_is_empty!(Tokenizer::new("\n   \n  \n"));
-    }
+    make_test_case!(empty_line, "", []);
+    make_test_case!(empty_input, "\n   \n  \n", []);
+    make_test_case!(treats_whitespace_line_as_empty_input, "  \t\t\t", []);
+    make_test_case!(
+        treats_multiple_whitespace_lines_as_empty_input,
+        "  \t\t\t\n\t \t\n\n\n\t ",
+        []
+    );
+    make_test_case!(
+        tokenizes_comment_only_input,
+        r##"#!/usr/bin/chocopy
+            # This is another comment"##,
+        Token::from_raw(TokenKind::Comment("#!/usr/bin/chocopy"), 0..18),
+        Token::EndLine,
+        Token::Indent,
+        Token::from_raw(TokenKind::Comment("# This is another comment"), 31..56),
+        Token::EndLine,
+        Token::Dedent,
+    );
 
-    #[test]
-    fn treats_whitespace_line_as_empty_input() {
-        check_lexer_is_empty!(Tokenizer::new("  \t\t\t"));
-    }
+    make_test_case!(
+        tokenizes_single_line,
+        "varname: int = 12",
+        Token::from_raw(TokenKind::Ident("varname"), 0..7),
+        Token::from_raw(TokenKind::Colon, 7..8),
+        Token::from_raw(TokenKind::Ident("int"), 9..12),
+        Token::from_raw(TokenKind::Assign, 13..14),
+        Token::from_raw(TokenKind::BuiltinValue(Constant::Integral(12)), 15..17),
+        Token::EndLine
+    );
 
-    #[test]
-    fn tokenizes_comment_only_input() {
-        let mut lexer = Tokenizer::new(
-            r##"#!/usr/bin/chocopy
-                # This is another comment"##,
-        );
-        check_lexer_has_tokens!(
-            lexer,
-            Token::from_raw(TokenKind::Comment("#!/usr/bin/chocopy"), 0..18),
-            Token::EndLine,
-            Token::Indent,
-            Token::from_raw(TokenKind::Comment("# This is another comment"), 35..60),
-            Token::EndLine,
-            Token::Dedent,
-        );
-    }
-
-    #[test]
-    fn treats_multiple_whitespace_lines_as_empty_input() {
-        check_lexer_is_empty!(Tokenizer::new("  \t\t\t\n\t \t\n\n\n\t "));
-    }
-
-    #[test]
-    fn tokenizes_single_line() {
-        let mut lexer = Tokenizer::new("varname: int = 12");
-        check_lexer_has_tokens!(
-            lexer,
-            Token::from_raw(TokenKind::Ident("varname"), 0..7),
-            Token::from_raw(TokenKind::Colon, 7..8),
-            Token::from_raw(TokenKind::Ident("int"), 9..12),
-            Token::from_raw(TokenKind::Assign, 13..14),
-            Token::from_raw(TokenKind::BuiltinValue(Constant::Integral(12)), 15..17),
-            Token::EndLine
-        );
-    }
-
-    #[test]
-    fn tokenizes_leading_space_as_indent() {
-        // Whitespace before start of code is treated as a indentation.
-        // This is an error, that is caught by the parser
-        let mut lexer = Tokenizer::new(" varname: int = 12");
-        check_lexer_has_tokens!(
-            lexer,
-            Token::Indent,
-            Token::from_raw(TokenKind::Ident("varname"), 1..8),
-            Token::from_raw(TokenKind::Colon, 8..9),
-            Token::from_raw(TokenKind::Ident("int"), 10..13),
-            Token::from_raw(TokenKind::Assign, 14..15),
-            Token::from_raw(TokenKind::BuiltinValue(Constant::Integral(12)), 16..18),
-            Token::EndLine,
-            Token::Dedent,
-        );
-    }
+    make_test_case!(
+        tokenizes_leading_space_as_indent,
+        " varname: int = 12",
+        Token::Indent,
+        Token::from_raw(TokenKind::Ident("varname"), 1..8),
+        Token::from_raw(TokenKind::Colon, 8..9),
+        Token::from_raw(TokenKind::Ident("int"), 10..13),
+        Token::from_raw(TokenKind::Assign, 14..15),
+        Token::from_raw(TokenKind::BuiltinValue(Constant::Integral(12)), 16..18),
+        Token::EndLine,
+        Token::Dedent,
+    );
 }

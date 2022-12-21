@@ -179,31 +179,33 @@ impl<'input> Iterator for Tokenizer<'input> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use indoc::indoc;
+    use pretty_assertions::assert_eq;
 
     macro_rules! check_lexer_is_empty {
         ($lexer: expr) => {
-            assert_eq!($lexer.next(), None)
+            assert_eq!(None, $lexer.next())
         };
     }
     macro_rules! check_lexer_has_tokens {
         ($lexer: expr, $item: expr) => {
-            assert_eq!($lexer.next(), Some(Ok($item)));
+            assert_eq!(Some(Ok($item)), $lexer.next());
             check_lexer_is_empty!($lexer);
         };
         ($lexer: expr, $first:expr, $( $rest:expr ),+ $(,)?) => {
-            assert_eq!($lexer.next(), Some(Ok($first)));
+            assert_eq!(Some(Ok($first)), $lexer.next());
             check_lexer_has_tokens!($lexer, $($rest),+);
         };
     }
 
     macro_rules! make_test_case {
-        ($name: ident, $input: literal, []) => {
+        ($name: ident, $input: expr, []) => {
             #[test]
             fn $name() {
                 check_lexer_is_empty!(Tokenizer::new($input));
             }
         };
-        ($name: ident, $input: literal, $( $expected_tokens: expr ),+ $(,)?) => {
+        ($name: ident, $input: expr, $( $expected_tokens: expr ),+ $(,)?) => {
             #[test]
             fn $name() {
                 let mut lexer = Tokenizer::new($input);

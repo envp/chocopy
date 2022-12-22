@@ -1,5 +1,5 @@
 mod token_kinds;
-use std::{collections::VecDeque, iter::Peekable};
+use std::{cmp::Ordering, collections::VecDeque, iter::Peekable};
 
 use logos::{Lexer, Span, SpannedIter};
 
@@ -128,25 +128,22 @@ impl<'input> Tokenizer<'input> {
                     let last_indent = indent_stack
                         .last()
                         .expect("Got unexpectedly empty indentation stack!");
-                    if last_indent.is_same_kind(&current_indent) {
-                        let mut tokens = vec![];
-                        if &current_indent > last_indent {
-                            tokens.push(Token::Indent);
-                        } else if &current_indent < last_indent {
+                    match current_indent.partial_cmp(last_indent) {
+                        Some(Ordering::Less) => {
                             let idx = indent_stack.iter().rposition(|item| &current_indent > item);
-                            let drain_iter = if let Some(i) = idx {
-                                indent_stack.drain(i + 1..)
+                            let length = if let Some(i) = idx {
+                                indent_stack.drain(i + 1..).count()
                             } else {
-                                indent_stack.drain(..)
+                                indent_stack.drain(..).count()
                             };
-                            drain_iter.for_each(|_| tokens.push(Token::Dedent));
+                            Ok(vec![Token::Dedent; length])
                         }
-                        Ok(tokens)
-                    } else {
+                        Some(Ordering::Greater) => Ok(vec![Token::Indent]),
+                        Some(Ordering::Equal) => Ok(vec![]),
                         // TODO:
                         // Capture previous & current kinds/spans for
                         // better error reporting
-                        Err(LexicalError::MixedInterlineIndetation)
+                        None => Err(LexicalError::MixedInterlineIndetation),
                     }
                 }
             }

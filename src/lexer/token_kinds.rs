@@ -37,19 +37,6 @@ impl PartialOrd for WSKind {
     }
 }
 
-impl Ord for WSKind {
-    /// Compare two whitespace objects.
-    /// The comparison requires that they be the same 'kind' of whitespace.
-    /// If successful, they are ordered by their widths / character counts.
-    ///
-    /// # Panics
-    /// If the two whitespace are of a different kind, this will panic.
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.partial_cmp(other)
-            .expect("Cannot compare different whitespace kinds.")
-    }
-}
-
 #[derive(Debug, Clone, PartialEq)]
 pub enum Constant {
     Boolean(bool),

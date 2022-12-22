@@ -91,9 +91,9 @@ impl<'input> Tokenizer<'input> {
                     .for_each(drop);
                 result
             });
-        let token_buffer = &mut self.token_buffer;
-        let indent_stack = &mut self.indent_stack;
         if line.peek().is_some() {
+            let token_buffer = &mut self.token_buffer;
+            let indent_stack = &mut self.indent_stack;
             // Process tokens inside the line
             let result = Tokenizer::compute_indent_tokens(indent_stack, indentation);
             match result {

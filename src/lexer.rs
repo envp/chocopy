@@ -114,40 +114,36 @@ impl<'input> Tokenizer<'input> {
         indent_stack: &mut Vec<WSKind>,
         indentation: Option<Result<WSKind, LexicalError>>,
     ) -> Result<Vec<Token<'input>>, LexicalError> {
-        if indentation.is_none() {
-            return Ok(Default::default());
-        }
-        let indentation = indentation.unwrap();
-
-        match indentation {
-            Ok(current_indent) => {
-                if indent_stack.is_empty() {
-                    indent_stack.push(current_indent);
-                    Ok(vec![Token::Indent])
-                } else {
-                    let last_indent = indent_stack
-                        .last()
-                        .expect("Got unexpectedly empty indentation stack!");
-                    match current_indent.partial_cmp(last_indent) {
-                        Some(Ordering::Less) => {
-                            let idx = indent_stack.iter().rposition(|item| &current_indent > item);
-                            let length = if let Some(i) = idx {
-                                indent_stack.drain(i + 1..).count()
-                            } else {
-                                indent_stack.drain(..).count()
-                            };
-                            Ok(vec![Token::Dedent; length])
-                        }
-                        Some(Ordering::Greater) => Ok(vec![Token::Indent]),
-                        Some(Ordering::Equal) => Ok(vec![]),
-                        // TODO:
-                        // Capture previous & current kinds/spans for
-                        // better error reporting
-                        None => Err(LexicalError::MixedInterlineIndetation),
+        if let Some(Ok(current_indent)) = indentation {
+            if indent_stack.is_empty() {
+                indent_stack.push(current_indent);
+                Ok(vec![Token::Indent])
+            } else {
+                let last_indent = indent_stack
+                    .last()
+                    .expect("Got unexpectedly empty indentation stack!");
+                match current_indent.partial_cmp(last_indent) {
+                    Some(Ordering::Less) => {
+                        let idx = indent_stack.iter().rposition(|item| &current_indent > item);
+                        let length = if let Some(i) = idx {
+                            indent_stack.drain(i + 1..).count()
+                        } else {
+                            indent_stack.drain(..).count()
+                        };
+                        Ok(vec![Token::Dedent; length])
                     }
+                    Some(Ordering::Greater) => Ok(vec![Token::Indent]),
+                    Some(Ordering::Equal) => Ok(vec![]),
+                    // TODO:
+                    // Capture previous & current kinds/spans for
+                    // better error reporting
+                    None => Err(LexicalError::MixedInterlineIndetation),
                 }
             }
-            Err(err) => Err(err),
+        } else if let Some(Err(err)) = indentation {
+            Err(err)
+        } else {
+            Ok(vec![])
         }
     }
 

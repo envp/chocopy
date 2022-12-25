@@ -237,7 +237,7 @@ mod tests {
         Token::from_raw(TokenKind::Colon, 7..8),
         Token::from_raw(TokenKind::Ident("int"), 9..12),
         Token::from_raw(TokenKind::Assign, 13..14),
-        Token::from_raw(TokenKind::BuiltinValue(Constant::Integral(12)), 15..17),
+        Token::from_raw(TokenKind::Literal(Constant::Integral(12)), 15..17),
         Token::EndLine
     );
 
@@ -249,7 +249,7 @@ mod tests {
         Token::from_raw(TokenKind::Colon, 8..9),
         Token::from_raw(TokenKind::Ident("int"), 10..13),
         Token::from_raw(TokenKind::Assign, 14..15),
-        Token::from_raw(TokenKind::BuiltinValue(Constant::Integral(12)), 16..18),
+        Token::from_raw(TokenKind::Literal(Constant::Integral(12)), 16..18),
         Token::EndLine,
         Token::Dedent,
     );

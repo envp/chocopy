@@ -183,7 +183,7 @@ pub enum TokenKind<'input> {
     #[token("True", |_| Constant::Boolean(true))]
     #[token("False", |_| Constant::Boolean(false))]
     #[token("None", |_| Constant::NoneValue)]
-    BuiltinValue(Constant),
+    Literal(Constant),
 
     #[regex("(?&idstart)(?&idpart)*", priority = 1, callback = |lex| lex.slice())]
     Ident(&'input str),

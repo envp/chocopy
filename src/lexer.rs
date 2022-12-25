@@ -259,7 +259,7 @@ mod tests {
             return x + y
         "##
         ),
-        Token::from_raw(TokenKind::KWDef, 0..3),
+        Token::from_raw(TokenKind::Keyword(KW::Def), 0..3),
         Token::from_raw(TokenKind::Ident("add"), 4..7),
         Token::from_raw(TokenKind::LParen, 7..8),
         Token::from_raw(TokenKind::Ident("x"), 8..9),
@@ -275,9 +275,9 @@ mod tests {
         Token::from_raw(TokenKind::Colon, 30..31),
         Token::EndLine,
         Token::Indent,
-        Token::from_raw(TokenKind::KWReturn, 36..42),
+        Token::from_raw(TokenKind::Keyword(KW::Return), 36..42),
         Token::from_raw(TokenKind::Ident("x"), 43..44),
-        Token::from_raw(TokenKind::Operator(BuiltinOperator::Plus), 45..46),
+        Token::from_raw(TokenKind::Operator(Op::Plus), 45..46),
         Token::from_raw(TokenKind::Ident("y"), 47..48),
         Token::EndLine,
         Token::Dedent,

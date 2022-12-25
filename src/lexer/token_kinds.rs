@@ -37,14 +37,18 @@ impl PartialOrd for WSKind {
     }
 }
 
+/// Primitive constants such as None (unit type), Booleans, and integers
+/// are considered "builtins" in ChocoPy.
 #[derive(Debug, Clone, PartialEq)]
 pub enum Constant {
     Boolean(bool),
     Integral(i32),
+    NoneValue,
 }
 
+/// All the builtin operator symbols in ChocoPy
 #[derive(Debug, Clone, PartialEq)]
-pub enum BuiltinOperator {
+pub enum Op {
     Equal,
     NotEqual,
     Lesser,
@@ -57,6 +61,44 @@ pub enum BuiltinOperator {
     Slash,
     SlashSlash,
     Modulus,
+    And,
+    Or,
+    Not,
+    In,
+    Is,
+}
+
+/// All of ChocoPy's keywords. Keep these arranged alphabetically for
+/// sanity.
+#[derive(Debug, Clone, PartialEq)]
+pub enum KW {
+    As,
+    Assert,
+    Async,
+    Await,
+    Break,
+    Class,
+    Continue,
+    Def,
+    Del,
+    Elif,
+    Else,
+    Except,
+    Finally,
+    For,
+    From,
+    Global,
+    If,
+    Import,
+    Lambda,
+    Nonlocal,
+    Pass,
+    Raise,
+    Return,
+    Try,
+    While,
+    With,
+    Yield,
 }
 
 fn lex_integer<'lexer, 'input: 'lexer>(
@@ -89,28 +131,58 @@ pub enum TokenKind<'input> {
     #[token("->")]
     RArrow,
 
-    #[token("==", |_| BuiltinOperator::Equal)]
-    #[token("!=", |_| BuiltinOperator::NotEqual)]
-    #[token("<", |_| BuiltinOperator::Lesser)]
-    #[token(">", |_| BuiltinOperator::Greater)]
-    #[token("<=", |_| BuiltinOperator::LesserEq)]
-    #[token(">=", |_| BuiltinOperator::GreaterEq)]
-    #[token("+", |_| BuiltinOperator::Plus)]
-    #[token("-", |_| BuiltinOperator::Minus)]
-    #[token("*", |_| BuiltinOperator::Asterisk)]
-    #[token("/", |_| BuiltinOperator::Slash)]
-    #[token("//", |_| BuiltinOperator::SlashSlash)]
-    #[token("%", |_| BuiltinOperator::Modulus)]
-    Operator(BuiltinOperator),
+    #[token("==",  |_| Op::Equal)]
+    #[token("!=",  |_| Op::NotEqual)]
+    #[token("<",   |_| Op::Lesser)]
+    #[token(">",   |_| Op::Greater)]
+    #[token("<=",  |_| Op::LesserEq)]
+    #[token(">=",  |_| Op::GreaterEq)]
+    #[token("+",   |_| Op::Plus)]
+    #[token("-",   |_| Op::Minus)]
+    #[token("*",   |_| Op::Asterisk)]
+    #[token("/",   |_| Op::Slash)]
+    #[token("//",  |_| Op::SlashSlash)]
+    #[token("%",   |_| Op::Modulus)]
+    #[token("and", |_| Op::And)]
+    #[token("or",  |_| Op::Or)]
+    #[token("not", |_| Op::Not)]
+    #[token("in",  |_| Op::In)]
+    #[token("is",  |_| Op::Is)]
+    Operator(Op),
 
-    #[token("def", priority = 2)]
-    KWDef,
-    #[token("return", priority = 2)]
-    KWReturn,
+    #[token("as",       priority = 2, callback = |_| KW::As)]
+    #[token("assert",   priority = 2, callback = |_| KW::Assert)]
+    #[token("async",    priority = 2, callback = |_| KW::Async)]
+    #[token("await",    priority = 2, callback = |_| KW::Await)]
+    #[token("break",    priority = 2, callback = |_| KW::Break)]
+    #[token("class",    priority = 2, callback = |_| KW::Class)]
+    #[token("continue", priority = 2, callback = |_| KW::Continue)]
+    #[token("def",      priority = 2, callback = |_| KW::Def)]
+    #[token("del",      priority = 2, callback = |_| KW::Del)]
+    #[token("elif",     priority = 2, callback = |_| KW::Elif)]
+    #[token("else",     priority = 2, callback = |_| KW::Else)]
+    #[token("except",   priority = 2, callback = |_| KW::Except)]
+    #[token("finally",  priority = 2, callback = |_| KW::Finally)]
+    #[token("for",      priority = 2, callback = |_| KW::For)]
+    #[token("from",     priority = 2, callback = |_| KW::From)]
+    #[token("global",   priority = 2, callback = |_| KW::Global)]
+    #[token("if",       priority = 2, callback = |_| KW::If)]
+    #[token("import",   priority = 2, callback = |_| KW::Import)]
+    #[token("lambda",   priority = 2, callback = |_| KW::Lambda)]
+    #[token("nonlocal", priority = 2, callback = |_| KW::Nonlocal)]
+    #[token("pass",     priority = 2, callback = |_| KW::Pass)]
+    #[token("raise",    priority = 2, callback = |_| KW::Raise)]
+    #[token("return",   priority = 2, callback = |_| KW::Return)]
+    #[token("try",      priority = 2, callback = |_| KW::Try)]
+    #[token("while",    priority = 2, callback = |_| KW::While)]
+    #[token("with",     priority = 2, callback = |_| KW::With)]
+    #[token("yield",    priority = 2, callback = |_| KW::Yield)]
+    Keyword(KW),
 
+    #[regex("(?&digit)+", lex_integer)]
     #[token("True", |_| Constant::Boolean(true))]
     #[token("False", |_| Constant::Boolean(false))]
-    #[regex("(?&digit)+", lex_integer)]
+    #[token("None", |_| Constant::NoneValue)]
     BuiltinValue(Constant),
 
     #[regex("(?&idstart)(?&idpart)*", priority = 1, callback = |lex| lex.slice())]
@@ -160,5 +232,10 @@ impl<'input> TokenKind<'input> {
 
             _ => None,
         }
+    }
+
+    #[inline]
+    pub fn is_keyword(&self) -> bool {
+        matches!(self, TokenKind::Keyword(_))
     }
 }

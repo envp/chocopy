@@ -7,7 +7,13 @@ pub use token_kinds::*;
 
 use crate::utils::iter::PeekingTakeWhileExt;
 
+/// Byte offset into a source file
 type Offset = usize;
+
+/// A pair of source file offsets that capture a range within a source file
+///
+/// TODO: Current we assume that all code lives in a single file. This type
+/// needs to be coupled with some kind of "SourceManager" type to be useful.
 type ByteSpan = (Offset, Offset);
 
 #[derive(Debug, PartialEq, Clone)]

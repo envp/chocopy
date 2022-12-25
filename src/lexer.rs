@@ -115,13 +115,7 @@ impl<'input> Tokenizer<'input> {
         indentation: Option<Result<WSKind, LexicalError>>,
     ) -> Result<Vec<Token<'input>>, LexicalError> {
         if let Some(Ok(current_indent)) = indentation {
-            if indent_stack.is_empty() {
-                indent_stack.push(current_indent);
-                Ok(vec![Token::Indent])
-            } else {
-                let last_indent = indent_stack
-                    .last()
-                    .expect("Got unexpectedly empty indentation stack!");
+            if let Some(last_indent) = indent_stack.last() {
                 match current_indent.partial_cmp(last_indent) {
                     Some(Ordering::Less) => {
                         let idx = indent_stack.iter().rposition(|item| &current_indent > item);
@@ -139,6 +133,9 @@ impl<'input> Tokenizer<'input> {
                     // better error reporting
                     None => Err(LexicalError::MixedInterlineIndetation),
                 }
+            } else {
+                indent_stack.push(current_indent);
+                Ok(vec![Token::Indent])
             }
         } else if let Some(Err(err)) = indentation {
             Err(err)

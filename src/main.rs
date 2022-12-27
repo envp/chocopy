@@ -3,7 +3,9 @@
 mod lexer;
 mod utils;
 
-use std::{error::Error, io::stdin};
+use std::error::Error;
+
+use lexer::Tokenizer;
 
 const _SOURCE: &str = r##"
 def is_zero ( items : [ int ] , idx : int ) -> bool :
@@ -23,12 +25,10 @@ print( is_zero( mylist , 1) ) # Prints ’ True ’
 "##;
 
 fn main() -> Result<(), Box<dyn Error>> {
-    for line in stdin().lines() {
-        let content = line?;
-        let lex = lexer::Tokenizer::new(&content);
-        for token in lex {
-            println!("{token:?}");
-        }
+    let content = std::fs::read_to_string(std::env::args().nth(1).expect("Needs input file"))?;
+    let tokens = Tokenizer::new(&content);
+    for token in tokens {
+        println!("{:?}", token);
     }
     Ok(())
 }

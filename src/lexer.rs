@@ -47,7 +47,7 @@ pub struct Tokenizer<'input> {
 // TODO: Come up with better variant names
 #[derive(Debug, PartialEq)]
 pub enum LexicalError {
-    MixedInlineIndentation(ByteSpan),
+    MixedInlineIndentation,
     MixedInterlineIndetation,
 }
 
@@ -80,8 +80,8 @@ impl<'input> Tokenizer<'input> {
                 // This should lead to more precise error reporting on
                 // exactly how indentation was mixed. i.e
                 // <space> <tab> v/s <tab> <space>
-                let mixed_indent_error_handler = |(_, span): (_, Span)| {
-                    Err(LexicalError::MixedInlineIndentation((span.start, span.end)))
+                let mixed_indent_error_handler = |_| {
+                    Err(LexicalError::MixedInlineIndentation)
                 };
                 let retrieve_indent_handler = || {
                     Ok(*current_ws.unwrap_or_else(|| {

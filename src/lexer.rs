@@ -80,9 +80,7 @@ impl<'input> Tokenizer<'input> {
                 // This should lead to more precise error reporting on
                 // exactly how indentation was mixed. i.e
                 // <space> <tab> v/s <tab> <space>
-                let mixed_indent_error_handler = |_| {
-                    Err(LexicalError::MixedInlineIndentation)
-                };
+                let mixed_indent_error_handler = |_| Err(LexicalError::MixedInlineIndentation);
                 let retrieve_indent_handler = || {
                     Ok(*current_ws.unwrap_or_else(|| {
                         unreachable!("Expected whitespace, but got: '{token:?}'")

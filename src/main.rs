@@ -28,7 +28,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let content = std::fs::read_to_string(std::env::args().nth(1).expect("Needs input file"))?;
     let tokens = Tokenizer::new(&content);
     for token in tokens {
-        println!("{:?}", token);
+        println!("{token:?}");
     }
     Ok(())
 }

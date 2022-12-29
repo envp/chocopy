@@ -7,21 +7,6 @@ pub enum WSKind {
     Newline(usize),
 }
 
-impl WSKind {
-    pub fn char_count(&self) -> usize {
-        let inner = match self {
-            Self::Tab(size) => size,
-            Self::Space(size) => size,
-            Self::Newline(size) => size,
-        };
-        *inner
-    }
-
-    pub fn is_same_kind(&self, other: &WSKind) -> bool {
-        std::mem::discriminant(self) == std::mem::discriminant(other)
-    }
-}
-
 impl PartialOrd for WSKind {
     /// Compare two whitespace objects.
     /// The comparison requires that they be the same 'kind' of whitespace.

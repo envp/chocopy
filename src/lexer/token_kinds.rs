@@ -28,7 +28,7 @@ impl PartialOrd for WSKind {
 pub enum Constant {
     Boolean(bool),
     Integral(i32),
-    NoneValue,
+    Unit,
 }
 
 /// All the builtin operator symbols in ChocoPy
@@ -167,7 +167,7 @@ pub enum TokenKind<'input> {
     #[regex("(?&digit)+", lex_integer)]
     #[token("True", |_| Constant::Boolean(true))]
     #[token("False", |_| Constant::Boolean(false))]
-    #[token("None", |_| Constant::NoneValue)]
+    #[token("None", |_| Constant::Unit)]
     Literal(Constant),
 
     #[regex("(?&idstart)(?&idpart)*", priority = 1, callback = |lex| lex.slice())]

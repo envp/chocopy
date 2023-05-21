@@ -59,8 +59,6 @@ pub enum Op {
 pub enum KW {
     As,
     Assert,
-    Async,
-    Await,
     Break,
     Class,
     Continue,
@@ -68,22 +66,13 @@ pub enum KW {
     Del,
     Elif,
     Else,
-    Except,
-    Finally,
     For,
     From,
-    Global,
     If,
     Import,
-    Lambda,
-    Nonlocal,
     Pass,
-    Raise,
     Return,
-    Try,
     While,
-    With,
-    Yield,
 }
 
 fn lex_integer<'lexer, 'input: 'lexer>(
@@ -137,8 +126,6 @@ pub enum TokenKind<'input> {
 
     #[token("as",       priority = 2, callback = |_| KW::As)]
     #[token("assert",   priority = 2, callback = |_| KW::Assert)]
-    #[token("async",    priority = 2, callback = |_| KW::Async)]
-    #[token("await",    priority = 2, callback = |_| KW::Await)]
     #[token("break",    priority = 2, callback = |_| KW::Break)]
     #[token("class",    priority = 2, callback = |_| KW::Class)]
     #[token("continue", priority = 2, callback = |_| KW::Continue)]
@@ -146,22 +133,13 @@ pub enum TokenKind<'input> {
     #[token("del",      priority = 2, callback = |_| KW::Del)]
     #[token("elif",     priority = 2, callback = |_| KW::Elif)]
     #[token("else",     priority = 2, callback = |_| KW::Else)]
-    #[token("except",   priority = 2, callback = |_| KW::Except)]
-    #[token("finally",  priority = 2, callback = |_| KW::Finally)]
     #[token("for",      priority = 2, callback = |_| KW::For)]
     #[token("from",     priority = 2, callback = |_| KW::From)]
-    #[token("global",   priority = 2, callback = |_| KW::Global)]
     #[token("if",       priority = 2, callback = |_| KW::If)]
     #[token("import",   priority = 2, callback = |_| KW::Import)]
-    #[token("lambda",   priority = 2, callback = |_| KW::Lambda)]
-    #[token("nonlocal", priority = 2, callback = |_| KW::Nonlocal)]
     #[token("pass",     priority = 2, callback = |_| KW::Pass)]
-    #[token("raise",    priority = 2, callback = |_| KW::Raise)]
     #[token("return",   priority = 2, callback = |_| KW::Return)]
-    #[token("try",      priority = 2, callback = |_| KW::Try)]
     #[token("while",    priority = 2, callback = |_| KW::While)]
-    #[token("with",     priority = 2, callback = |_| KW::With)]
-    #[token("yield",    priority = 2, callback = |_| KW::Yield)]
     Keyword(KW),
 
     #[regex("(?&digit)+", lex_integer)]

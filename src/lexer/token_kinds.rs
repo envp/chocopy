@@ -33,7 +33,7 @@ pub enum Constant {
 
 /// All the builtin operator symbols in ChocoPy
 #[derive(Debug, Clone, PartialEq)]
-pub enum Op {
+pub(crate) enum Op {
     Equal,
     NotEqual,
     Lesser,
